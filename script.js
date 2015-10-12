@@ -1,16 +1,83 @@
-var myCanvas = document.getElementById('canvas');
+var Drawing = ( function( window, undefined ) {
+  var LEFT = 75;
+  var BASELINE = 450;
+  var YEAR_WIDTH = 7;
 
-var i;
+  var myCanvas = document.getElementById( 'canvas' );
 
-var LEFT = 75;
-var BASELINE = 450;
+  context = myCanvas.getContext( "2d" )
+
+  /**
+   * draws a life line for the given person
+   * @param {Object} person   a structure with birth and end dates
+   */
+  function drawLifeLine( person ) {
+    var birthDate = (people[i].birthDate - 1900) * YEAR_WIDTH + LEFT;
+    var endDate = (people[i].endDate - 1900) * YEAR_WIDTH + LEFT;
+    var span = endDate - birthDate;
+
+    context.beginPath();
+    context.moveTo(birthDate, BASELINE);
+    context.quadraticCurveTo(endDate - (span / 2), (BASELINE - span), endDate, BASELINE);
+    context.stroke();
+  }
+
+  /**
+   * draws a grid line with hash marks and labels
+   * @param {number} width         the horizontal size of the grid
+   * @param {number} numDivisions  the number of sections between hash marks
+   */
+  function drawGridLine( width, numDivisions ) {
+    if ( numDivisions < 3 ) {
+      numDivisions = 3;
+    }
+    var interval = width / numDivisions;
+    var yearInterval = 125 / numDivisions ;
+
+    var labelXposition = -35;
+    var labelYposition;
+
+    context.moveTo(LEFT, BASELINE);
+    context.lineTo(LEFT + width, BASELINE);
+    context.stroke();
+
+    context.font = "12px Verdana";
+
+    var i;
+    for (i = 0; i <= numDivisions; i++) {
+      context.moveTo(LEFT + (i * interval), BASELINE - 10);
+      context.lineTo(LEFT + (i * interval), BASELINE + 10);
+
+      context.save();
+      context.translate(LEFT, BASELINE);
+      context.rotate(-Math.PI/2);
+
+      context.textAlign = "center";
+      
+      labelYposition = 5 + (i * interval);
+
+      context.fillText( 
+                        ( 1900 + Math.floor( i * yearInterval ) ).toString(), 
+                        labelXposition,
+                        labelYposition
+                      );
+
+      context.restore();
+    }
+    // draw in all the hash marks with just calculated in the loop
+    context.stroke();
+  }
+
+  return {
+    drawLifeLine: drawLifeLine,
+    drawGridLine: drawGridLine
+  };
+ 
+} )( window );
+
 var WIDTH = 875;
-var INTERVAL_WIDTH = 35;
-var YEAR_WIDTH = 7;
 
-context = myCanvas.getContext("2d")
-
-drawGridLine(context, LEFT, WIDTH, BASELINE, INTERVAL_WIDTH);
+Drawing.drawGridLine( WIDTH, 30 );
 
 var people = [
   {
@@ -46,61 +113,5 @@ var people = [
 ];
 
 for (var i = 0; i < people.length; i ++) {
-    drawLifeLine(context, people[i], BASELINE);
-}
-
-/**
- * draws a life line for the given person
- * @param {Object} context  the canvas object's context
- * @param {Object} person   a structure with birth and end dates
- * @param {number} baseline the Y-coordinate for the grid line
- */
-function drawLifeLine(context, person, baseline) {
-  var birthDate = (people[i].birthDate - 1900) * YEAR_WIDTH + LEFT;
-  var endDate = (people[i].endDate - 1900) * YEAR_WIDTH + LEFT;
-  var span = endDate - birthDate;
-
-  context.beginPath();
-  context.moveTo(birthDate, BASELINE);
-  context.quadraticCurveTo(endDate - (span / 2), (BASELINE - span), endDate, BASELINE);
-  context.closePath();
-  context.stroke();
-}
-
-/**
- * draws a grid line with hash marks and labels
- * @param {Object} context       the canvas object's context
- * @param {number} startingPoint the X-coordinate to start from
- * @param {number} width         the horizontal size of the grid
- * @param {number} baseline      the Y-coordinate for the grid line
- * @param {number} interval      the distance between hash marks
- */
-function drawGridLine(context, startingPoint, width, baseline, interval) {
-  var labelXposition = -35;
-  var labelYposition;
-
-  context.moveTo(startingPoint, baseline);
-  context.lineTo(startingPoint + width, baseline);
-  context.stroke();
-
-  context.font = "12px Verdana";
-
-  for (i = 0; i <= 25; i++) {
-    context.moveTo(startingPoint + (i * interval), baseline - 10);
-    context.lineTo(startingPoint + (i * interval), baseline + 10);
-
-    context.save();
-    context.translate(startingPoint, baseline);
-    context.rotate(-Math.PI/2);
-
-    context.textAlign = "center";
-    
-    labelYposition = 5 + (i * interval);
-
-    context.fillText((1900 + (i * 5)).toString(), labelXposition, labelYposition);
-
-    context.restore();
-  }
-  // draw in all the hash marks with just calculated in the loop
-  context.stroke();
+    Drawing.drawLifeLine( people[i] );
 }
